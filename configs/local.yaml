@@ -1,0 +1,12 @@
+env: "local"
+postgres:
+  host:     localhost
+  port:     5440
+  dbname:   tasktrackerDB
+  username: postgres
+  password: qwerty
+http:
+  host:         localhost
+  port:         8082
+  timeout:      4s
+  idle_timeout: 60s 
