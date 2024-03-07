@@ -40,7 +40,7 @@ func (u *UsersService) SignUp(ctx context.Context, name string, password string)
 	return nil
 }
 
-func (u *UsersService) SignIn(ctx context.Context, username string, password string) (domain.Tokens, error) {
-	token := domain.Tokens{}
+func (u *UsersService) SignIn(ctx context.Context, username string, password string) (Tokens, error) {
+	token := Tokens{}
 	return token, nil
 }

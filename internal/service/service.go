@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"log/slog"
-	"tasktracker/internal/domain"
 	repository "tasktracker/internal/repository/postgres"
 )
 
@@ -14,7 +13,12 @@ type Deps struct {
 
 type Users interface {
 	SignUp(ctx context.Context, username string, password string) error
-	SignIn(ctx context.Context, username string, password string) (domain.Tokens, error)
+	SignIn(ctx context.Context, username string, password string) (Tokens, error)
+}
+
+type Tokens struct {
+	AccessToken  string
+	RefreshToken string
 }
 
 type Services struct {
