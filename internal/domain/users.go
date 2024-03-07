@@ -1,7 +1,9 @@
 package domain
 
+import "github.com/google/uuid"
+
 type Users struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	ID           uuid.UUID `json:"id" db: "id"`
+	Name         string    `json:"name" db: "name"`
+	PasswordHash string    `json:"password_hash" db: "password_hash"`
 }

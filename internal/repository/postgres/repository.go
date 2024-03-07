@@ -9,7 +9,8 @@ import (
 
 type Users interface {
 	Create(ctx context.Context, user domain.Users) error
-	GetByCredentials(ctx context.Context, username, password string) (domain.Users, error)
+	GetByCredentials(ctx context.Context, name string) (domain.Users, error)
+	GetPasswordHashByUsername(ctx context.Context, name string) (string, error)
 }
 
 // type Deps struct {
