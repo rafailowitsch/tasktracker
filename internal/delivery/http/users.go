@@ -66,6 +66,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Service layer error", http.StatusInternalServerError)
 	}
 
+	//TODO : put it in a separate struct
 	response := map[string]string{
 		"AccessToken":  res.AccessToken,
 		"RefreshToken": res.RefreshToken,

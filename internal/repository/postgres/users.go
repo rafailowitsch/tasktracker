@@ -59,3 +59,12 @@ func (u *UsersRepo) GetPasswordHashByUsername(ctx context.Context, name string) 
 	}
 	return password_hash, nil
 }
+
+func (u *UsersRepo) SetSession(ctx context.Context, session domain.Session, userID uuid.UUID) error {
+	_, err := u.DB.Exec(ctx, "INSERT INTO users_session (user_id, refresh_token, expires_at) VALUES ($1, $2, $3)", userID, session.RefreshToken, session.ExpiresAt)
+	// TODO : dublicate check
+	if err != nil {
+		log.Printf("%s", err)
+	}
+	return err
+}

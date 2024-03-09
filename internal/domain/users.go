@@ -1,9 +1,18 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Users struct {
-	ID           uuid.UUID `json:"id" db: "id"`
-	Name         string    `json:"name" db: "name"`
-	PasswordHash string    `json:"password_hash" db: "password_hash"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+type Session struct {
+	RefreshToken string    `json:"refreshToken"`
+	ExpiresAt    time.Time `json:"expiresAt"`
 }

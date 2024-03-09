@@ -4,11 +4,13 @@ import (
 	"context"
 	"log/slog"
 	repository "tasktracker/internal/repository/postgres"
+	"tasktracker/pkg/auth"
 )
 
 type Deps struct {
-	Repos *repository.Repositories
-	Log   slog.Logger
+	Repos        *repository.Repositories
+	TokenManager auth.Manager
+	Log          slog.Logger
 }
 
 type Users interface {
@@ -27,6 +29,6 @@ type Services struct {
 
 func NewServices(deps Deps) *Services {
 	return &Services{
-		Users: NewUsersService(deps.Repos.UsersRepo, deps.Log),
+		Users: NewUsersService(deps.Repos.UsersRepo, deps.TokenManager, deps.Log),
 	}
 }

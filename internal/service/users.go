@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"tasktracker/internal/domain"
 	repository "tasktracker/internal/repository/postgres"
+	"tasktracker/pkg/auth"
 	"tasktracker/pkg/log/sl"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -15,13 +17,15 @@ import (
 type UsersService struct {
 	usersRepo repository.Users
 
-	log slog.Logger
+	tokenManager auth.Manager
+	log          slog.Logger
 }
 
-func NewUsersService(usersRepo repository.Users, log slog.Logger) *UsersService {
+func NewUsersService(usersRepo repository.Users, tokenManager auth.Manager, log slog.Logger) *UsersService {
 	return &UsersService{
-		usersRepo: usersRepo,
-		log:       log,
+		usersRepo:    usersRepo,
+		tokenManager: tokenManager,
+		log:          log,
 	}
 }
 
@@ -48,22 +52,36 @@ func (u *UsersService) SignUp(ctx context.Context, name, password string) error 
 }
 
 func (u *UsersService) SignIn(ctx context.Context, name, password string) (Tokens, error) {
-	if err := u.VerifyPassword(ctx, name, password); err != nil {
+	var (
+		user   domain.Users
+		err    error
+		tokens Tokens
+	)
+
+	err = u.verifyPassword(ctx, name, password)
+	if err != nil {
 		u.log.Error("Failed verifying password")
 		return Tokens{}, err
 	}
 
-	if user, err := u.usersRepo.GetByCredentials(ctx, name); err != nil {
+	user, err = u.usersRepo.GetByCredentials(ctx, name)
+	if err != nil {
 		u.log.Error("credentials error", sl.Err(err))
+		return Tokens{}, err
 	} else {
 		u.log.Info(fmt.Sprintf("successful sign-in %s", user.Name))
 	}
 
-	token := Tokens{}
-	return token, nil
+	tokens, err = u.createSession(ctx, user.ID)
+	if err != nil {
+		u.log.Error("Failed creating session", sl.Err(err))
+		return Tokens{}, err
+	}
+
+	return tokens, nil
 }
 
-func (u *UsersService) VerifyPassword(ctx context.Context, name, password string) error {
+func (u *UsersService) verifyPassword(ctx context.Context, name, password string) error {
 	password_hash, err := u.usersRepo.GetPasswordHashByUsername(ctx, name)
 	if err != nil {
 		u.log.Error("Failed password hash retrieval", sl.Err(err))
@@ -77,4 +95,38 @@ func (u *UsersService) VerifyPassword(ctx context.Context, name, password string
 	}
 
 	return nil
+}
+
+func (u *UsersService) createSession(ctx context.Context, userID uuid.UUID) (Tokens, error) {
+	u.log.Info("createSession")
+	var (
+		res Tokens
+		err error
+	)
+
+	res.AccessToken, err = u.tokenManager.NewJWT(userID.String(), 2*time.Hour)
+	if err != nil {
+		return Tokens{}, err
+	}
+	// u.log.Info("access token initialized")
+
+	res.RefreshToken, err = u.tokenManager.NewRefreshToken()
+	if err != nil {
+		return Tokens{}, err
+	}
+	// u.log.Info("refresh token initialized")
+
+	session := domain.Session{
+		RefreshToken: res.RefreshToken,
+		ExpiresAt:    time.Now().Add(2 * time.Hour),
+	}
+	// u.log.Info("session initialized")
+
+	err = u.usersRepo.SetSession(ctx, session, userID)
+	if err != nil {
+		return Tokens{}, err
+	}
+	// u.log.Info("successful set session")
+
+	return res, nil
 }

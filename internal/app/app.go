@@ -10,6 +10,7 @@ import (
 	delivery "tasktracker/internal/delivery/http"
 	repository "tasktracker/internal/repository/postgres"
 	"tasktracker/internal/service"
+	"tasktracker/pkg/auth"
 	"tasktracker/pkg/log/sl"
 	"tasktracker/pkg/log/slogpretty"
 	"time"
@@ -43,11 +44,23 @@ func Run(configsDir, env string) {
 	defer conn.Close(context.Background())
 	log.Info("database connect")
 
+	err = repository.CreateTables(ctx, conn)
+	if err != nil {
+		log.Error("Error creating tables", sl.Err(err))
+	}
+
+	manager, err := auth.NewManager("gosecretkey")
+	if err != nil {
+		log.Error("Error authentication module initialization")
+	}
+
 	repos := repository.NewRepositories(conn)
 	service := service.NewServices(service.Deps{
-		Repos: repos,
-		Log:   *log,
+		Repos:        repos,
+		TokenManager: *manager,
+		Log:          *log,
 	})
+
 	handler := delivery.NewHandler(service, *log)
 	var srv http.Server
 	srv.Handler = handler.InitRoutes()
