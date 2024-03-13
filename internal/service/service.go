@@ -16,6 +16,7 @@ type Deps struct {
 type Users interface {
 	SignUp(ctx context.Context, name string, password string) error
 	SignIn(ctx context.Context, name string, password string) (Tokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error)
 }
 
 type Tokens struct {

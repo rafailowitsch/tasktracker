@@ -60,9 +60,26 @@ func (u *UsersRepo) GetPasswordHashByUsername(ctx context.Context, name string) 
 	return password_hash, nil
 }
 
+func (u *UsersRepo) GetUserIdByRefreshToken(ctx context.Context, refreshToken string) (uuid.UUID, error) {
+	var userID uuid.UUID
+
+	err := u.DB.QueryRow(ctx, "SELECT user_id FROM users_sessions WHERE refresh_token=$1", refreshToken).Scan(&userID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return userID, nil
+}
+
 func (u *UsersRepo) SetSession(ctx context.Context, session domain.Session, userID uuid.UUID) error {
-	_, err := u.DB.Exec(ctx, "INSERT INTO users_session (user_id, refresh_token, expires_at) VALUES ($1, $2, $3)", userID, session.RefreshToken, session.ExpiresAt)
-	// TODO : dublicate check
+	query := `
+	INSERT INTO users_sessions (user_id, refresh_token, expires_at)
+	VALUES ($1, $2, $3)
+	ON CONFLICT (user_id) DO UPDATE
+	SET refresh_token = EXCLUDED.refresh_token, expires_at = EXCLUDED.expires_at
+	`
+
+	_, err := u.DB.Exec(ctx, query, userID, session.RefreshToken, session.ExpiresAt)
 	if err != nil {
 		log.Printf("%s", err)
 	}

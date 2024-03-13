@@ -97,6 +97,15 @@ func (u *UsersService) verifyPassword(ctx context.Context, name, password string
 	return nil
 }
 
+func (u *UsersService) RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error) {
+	userID, err := u.usersRepo.GetUserIdByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	return u.createSession(ctx, userID)
+}
+
 func (u *UsersService) createSession(ctx context.Context, userID uuid.UUID) (Tokens, error) {
 	u.log.Info("createSession")
 	var (

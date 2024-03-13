@@ -21,7 +21,7 @@ func CreateTables(ctx context.Context, conn *pgx.Conn) error {
 	}
 
 	_, err = conn.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS users_session (
+		CREATE TABLE IF NOT EXISTS users_sessions (
 			user_id UUID PRIMARY KEY,
 			refresh_token VARCHAR(255) NOT NULL,
 			expires_at TIMESTAMP NOT NULL,

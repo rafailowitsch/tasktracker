@@ -13,6 +13,7 @@ type Users interface {
 	GetByCredentials(ctx context.Context, name string) (domain.Users, error)
 	GetPasswordHashByUsername(ctx context.Context, name string) (string, error)
 	SetSession(ctx context.Context, session domain.Session, userID uuid.UUID) error
+	GetUserIdByRefreshToken(ctx context.Context, refreshToken string) (uuid.UUID, error)
 }
 
 type Repositories struct {

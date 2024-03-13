@@ -20,6 +20,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	router.Route("/users", func(r chi.Router) {
 		r.Post("/sign-up", h.SignUp)
 		r.Post("/sign-in", h.SignIn)
+		r.Post("/auth/refresh", h.Refresh)
 	})
 
 	// TODO : Init task tracker routes
