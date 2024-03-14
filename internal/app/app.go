@@ -61,7 +61,7 @@ func Run(configsDir, env string) {
 		Log:          *log,
 	})
 
-	handler := delivery.NewHandler(service, *log)
+	handler := delivery.NewHandler(service, *manager, *log)
 	var srv http.Server
 	srv.Handler = handler.InitRoutes()
 	srv.Addr = "localhost:8000"

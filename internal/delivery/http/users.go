@@ -106,6 +106,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 		ctx,
 		input.Token,
 	)
+
 	if err != nil {
 		h.log.Error("Service layer error", sl.Err(err))
 		http.Error(w, "Service layer error", http.StatusInternalServerError)
@@ -125,4 +126,12 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
+}
+
+func (h *Handler) Ping(w http.ResponseWriter, r *http.Request) {
+	response := "pong"
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
 }
