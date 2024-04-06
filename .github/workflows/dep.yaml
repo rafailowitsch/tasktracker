@@ -1,56 +1,43 @@
-name: dep
+name: Build and Deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to deploy'
-        required: true
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  dep:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      HOST: root@194.87.98.56
-      DEPLOY_DIRECTORY: /root/apps/tasktracker
-      CONFIG_PATH: /root/apps/tasktracker/configs/prod.yaml
-      ENV_FILE_PATH: /root/apps/tasktracker/config.env
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.tag }}
-      - name: Check if tag exists
-        run: |
-          git fetch --all --tags
-          if ! git tag | grep -q "^${{ github.event.inputs.tag }}$"; then
-            echo "error: Tag '${{ github.event.inputs.tag }}' not found"
-            exit 1
-          fi
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21.6
-      - name: Deploy to VM
-        run: |
-          sudo apt-get install -y ssh rsync
-          echo "$DEPLOY_SSH_KEY" > deploy_key.pem
-          chmod 600 deploy_key.pem
-          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "mkdir -p ${{ env.DEPLOY_DIRECTORY }}"
-          rsync -avz -e 'ssh -i deploy_key.pem -o StrictHostKeyChecking=no' --exclude='.git' ./ ${{ env.HOST }}:${{ env.DEPLOY_DIRECTORY }}
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-      - name: Create environment file on server
-        run: |
-          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "\
-          touch ${{ env.ENV_FILE_PATH }} && \
-          chmod 600 ${{ env.ENV_FILE_PATH }} && \
-          echo 'CONFIG_PATH=${{ env.CONFIG_PATH }}' > ${{ env.ENV_FILE_PATH }} && \
-          echo 'HTTP_SERVER_PASSWORD=${{ secrets.AUTH_PASS }}' >> ${{ env.ENV_FILE_PATH }}"
-      - name: Dockerfile action
-        run: |
-          docker build -t tasktracker .
-      - name: docker-compose up
-        run: |
-          docker-compose up --build tasktracker
+    - name: Check out the code
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Packages
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Docker image with docker-compose
+      run: docker-compose build
+
+    - name: Push Docker image to GitHub Packages
+      run: |
+        docker tag tasktracker:latest ghcr.io/${{ github.repository }}/tasktracker:latest
+        docker push ghcr.io/${{ github.repository }}/tasktracker:latest
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          cd /root/apps/tasktracker/
+          docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          docker pull ghcr.io/${{ github.repository }}/tasktracker:latest
+          docker-compose down
+          docker-compose up -d
