@@ -29,8 +29,8 @@ jobs:
 
     - name: Push Docker image to GitHub Packages
       run: |
-        docker tag tasktracker:latest ghcr.io/tasktracker/tasktracker:latest
-        docker push ghcr.io/tasktracker/tasktracker:latest
+        docker tag tasktracker:latest ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
+        docker push ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
 
     - name: Deploy to VPS
       uses: appleboy/ssh-action@master
