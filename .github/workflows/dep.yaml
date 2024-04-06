@@ -22,15 +22,9 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Docker image with docker-compose
-      run: docker-compose build
-
-    - name: List docker images
-      run: docker images
-
-    - name: Push Docker image to GitHub Packages
       run: |
-        docker tag tasktracker:latest ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
-        docker push ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
+        docker-compose build
+        docker push ghcr.io/rafailowitschtasktracker/tasktracker:latest
 
     - name: Deploy to VPS
       uses: appleboy/ssh-action@master
