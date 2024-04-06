@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - name: Check out the code
@@ -21,7 +24,7 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Docker image with docker-compose
+    - name: Build Docker image with docker-compose and push
       run: |
         docker-compose build
         docker push ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
