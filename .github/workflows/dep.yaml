@@ -1,4 +1,4 @@
-name: Deploy App
+name: dep
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  deploy:
+  dep:
     runs-on: ubuntu-latest
     env:
       HOST: root@194.87.98.56
