@@ -77,21 +77,14 @@ func (m *Manager) MiddlewareJWT(next http.Handler) http.Handler {
 		if tokenString := request.Header.Get("Authorization"); tokenString != "" {
 			tokenString = tokenString[len("Bearer "):]
 
-			// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			// 		writer.WriteHeader(http.StatusUnauthorized)
-			// 		_, err := writer.Write([]byte("You're Unauthorized"))
-			// 		if err != nil {
-			// 			return nil, err
-			// 		}
-			// 	}
-			// 	return m.signingKey, nil
-			// })
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, err error) {
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					writer.WriteHeader(http.StatusUnauthorized)
+					_, err := writer.Write([]byte("You're Unauthorized"))
+					if err != nil {
+						return nil, err
+					}
 				}
-
 				return []byte(m.signingKey), nil
 			})
 			if err != nil {

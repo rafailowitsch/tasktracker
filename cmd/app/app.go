@@ -1,6 +1,8 @@
 package main
 
-import "tasktracker/internal/app"
+import (
+	"tasktracker/internal/app"
+)
 
 const configsDir = "configs/"
 
@@ -11,5 +13,5 @@ const (
 )
 
 func main() {
-	app.Run(configsDir, envLocal)
+	app.Run(configsDir, envProd)
 }

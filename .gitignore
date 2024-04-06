@@ -33,5 +33,6 @@ Temporary Items
 *.icloud
 
 *.yaml
+.database
 
 .vscode/
