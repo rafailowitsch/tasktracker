@@ -24,7 +24,7 @@ jobs:
     - name: Build Docker image with docker-compose
       run: |
         docker-compose build
-        docker push ghcr.io/rafailowitschtasktracker/tasktracker:latest
+        docker push ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
 
     - name: Deploy to VPS
       uses: appleboy/ssh-action@master
@@ -35,6 +35,6 @@ jobs:
         script: |
           cd /root/apps/tasktracker/
           docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
-          docker pull ghcr.io/${{ github.repository }}/tasktracker:latest
+          docker pull ghcr.io/rafailowitsch/tasktracker/tasktracker:latest
           docker-compose down
           docker-compose up -d
